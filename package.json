@@ -1,0 +1,83 @@
+{
+  "name": "@prismposter/creator-tools",
+  "version": "0.1.0",
+  "description": "Zero-dependency TypeScript utilities for video and social creators: aspect-ratio maths, tap tempo, subtitle parsing and conversion, platform frame sizes with sourced safe areas, and encoding calculators.",
+  "keywords": [
+    "aspect-ratio",
+    "safe-area",
+    "subtitles",
+    "srt",
+    "vtt",
+    "webvtt",
+    "ass",
+    "timecode",
+    "bitrate",
+    "tap-tempo",
+    "bpm",
+    "video",
+    "social-media",
+    "instagram-reels",
+    "tiktok",
+    "creator-tools"
+  ],
+  "license": "MIT",
+  "author": "PrismLabs OÜ",
+  "homepage": "https://github.com/prismposter/creator-tools",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prismposter/creator-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/prismposter/creator-tools/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./aspect-ratio": {
+      "types": "./dist/aspect-ratio.d.ts",
+      "import": "./dist/aspect-ratio.js"
+    },
+    "./tempo": {
+      "types": "./dist/tempo.d.ts",
+      "import": "./dist/tempo.js"
+    },
+    "./subtitles": {
+      "types": "./dist/subtitles.d.ts",
+      "import": "./dist/subtitles.js"
+    },
+    "./social-sizes": {
+      "types": "./dist/social-sizes.d.ts",
+      "import": "./dist/social-sizes.js"
+    },
+    "./encoding": {
+      "types": "./dist/encoding.d.ts",
+      "import": "./dist/encoding.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
