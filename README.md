@@ -201,8 +201,8 @@ fail without it.
 
 ## Related
 
-These utilities power the free tools at
-[prismposter.com/tools](https://www.prismposter.com/tools) — an
+These utilities cover the same ground as the free browser tools at
+[PrismPoster](https://www.prismposter.com) — an
 [aspect ratio calculator](https://www.prismposter.com/tools/aspect-ratio-calculator),
 [BPM tapper](https://www.prismposter.com/tools/bpm-tapper),
 [subtitle converter](https://www.prismposter.com/tools/subtitle-converter),
