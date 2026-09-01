@@ -10,8 +10,12 @@ a worker. Every number it returns is one you could check by hand — and where a
 platform doesn't publish a number, it says so instead of inventing one.
 
 ```bash
-npm install @prismposter/creator-tools
+npm install github:PrismPoster/creator-tools
 ```
+
+> The npm release is not out yet, so install from the repository for now — it
+> compiles on install. The `@prismposter/creator-tools` name is reserved for the
+> published build and every import path below is already the final one.
 
 ---
 
