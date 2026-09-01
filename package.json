@@ -33,6 +33,9 @@
     "lzw"
   ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "PrismLabs O\u00dc",
   "homepage": "https://www.prismposter.com/tools",
   "repository": {
@@ -91,6 +94,7 @@
   },
   "files": [
     "dist",
+    "src",
     "README.md",
     "LICENSE"
   ],
