@@ -1,0 +1,60 @@
+name: Publish
+
+# Publishing by hand needs a 2FA code typed at the right moment, which is fine
+# once and tedious forever. This runs the same gates as prepublishOnly and then
+# publishes on a GitHub Release, so a release is `git tag` plus a click.
+on:
+  release:
+    types: [published]
+  # Lets a release be re-run without cutting a new tag, e.g. after adding the
+  # NPM_TOKEN secret for the first time.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to publish from (e.g. v0.2.0)'
+        required: true
+
+permissions:
+  contents: read
+  # Required for npm provenance: npm mints a signed attestation binding the
+  # published tarball to this workflow run and this commit. Fitting for a
+  # package that ships a provenance module, and it costs nothing.
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+
+      - run: npm ci
+
+      # The same three gates prepublishOnly runs locally. Stated explicitly so a
+      # failure names which one broke rather than surfacing as "prepublish failed".
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      # Refuses to publish a tag whose version does not match package.json,
+      # which is the one mistake a tag-triggered release makes easy.
+      - name: Check the tag matches package.json
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          PKG="v$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Tag $TAG does not match package.json ($PKG)."
+            exit 1
+          fi
+          echo "$TAG matches package.json."
+
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
