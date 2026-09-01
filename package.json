@@ -1,7 +1,7 @@
 {
   "name": "@prismposter/creator-tools",
-  "version": "0.1.0",
-  "description": "Zero-dependency TypeScript utilities for video and social creators: aspect-ratio maths, tap tempo, subtitle parsing and conversion, platform frame sizes with sourced safe areas, and encoding calculators.",
+  "version": "0.2.0",
+  "description": "Zero-dependency TypeScript utilities for video and social creators: aspect-ratio maths, tap tempo, subtitle conversion, platform frame sizes with sourced safe areas, encoding calculators, colour-palette extraction, GIF encoding, image metadata, and C2PA / AI-provenance detection.",
   "keywords": [
     "aspect-ratio",
     "safe-area",
@@ -18,11 +18,23 @@
     "social-media",
     "instagram-reels",
     "tiktok",
-    "creator-tools"
+    "creator-tools",
+    "c2pa",
+    "content-credentials",
+    "provenance",
+    "ai-generated",
+    "eu-ai-act",
+    "exif",
+    "xmp",
+    "image-metadata",
+    "color-palette",
+    "median-cut",
+    "gif",
+    "lzw"
   ],
   "license": "MIT",
-  "author": "PrismLabs OÜ",
-  "homepage": "https://github.com/prismposter/creator-tools",
+  "author": "PrismLabs O\u00dc",
+  "homepage": "https://www.prismposter.com/tools",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/prismposter/creator-tools.git"
@@ -59,6 +71,22 @@
     "./encoding": {
       "types": "./dist/encoding.d.ts",
       "import": "./dist/encoding.js"
+    },
+    "./palette": {
+      "types": "./dist/palette.d.ts",
+      "import": "./dist/palette.js"
+    },
+    "./provenance": {
+      "types": "./dist/provenance.d.ts",
+      "import": "./dist/provenance.js"
+    },
+    "./image-metadata": {
+      "types": "./dist/image-metadata.d.ts",
+      "import": "./dist/image-metadata.js"
+    },
+    "./gif": {
+      "types": "./dist/gif.d.ts",
+      "import": "./dist/gif.js"
     }
   },
   "files": [
@@ -78,6 +106,7 @@
   },
   "devDependencies": {
     "typescript": "^5.6.0",
-    "vitest": "^2.1.0"
+    "vitest": "^2.1.0",
+    "@types/node": "^22.0.0"
   }
 }

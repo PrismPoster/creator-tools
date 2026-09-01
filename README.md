@@ -2,7 +2,8 @@
 
 Zero-dependency TypeScript utilities for video and social creators: aspect-ratio
 maths, tap tempo, subtitle parsing and conversion, platform frame sizes with
-**sourced** safe areas, and encoding calculators.
+**sourced** safe areas, encoding calculators, colour-palette extraction, GIF
+encoding, image metadata, and C2PA / AI-provenance detection.
 
 No runtime dependencies. No network calls. Works in the browser, in Node, and in
 a worker. Every number it returns is one you could check by hand — and where a
@@ -176,6 +177,102 @@ matching wall clock, which non-drop drifts from by ~3.6 s per hour.
 
 ---
 
+### `palette`
+
+Median-cut colour quantisation, plus the contrast maths for putting text on what
+it returns.
+
+```ts
+import { extractPalette, toHex, readableTextOn } from '@prismposter/creator-tools/palette';
+
+const swatches = extractPalette(pixels, 5);  // pixels: { r, g, b }[]
+swatches.map(toHex);                          // ['#1b2430', '#3f6d8e', ...]
+readableTextOn(swatches[0]);                  // { onColour: 'black' | 'white', ratio: 8.7 }
+```
+
+The box split is chosen at the **widest gap along the dominant axis**, not at the
+median pixel count. The textbook median split gives every box the same number of
+pixels, which is exactly wrong for a photograph: a large flat sky gets subdivided
+repeatedly while a small saturated accent -- the one colour a designer actually
+wants -- is averaged into its neighbour and disappears. Splitting at the gap
+keeps it.
+
+When the source has fewer distinct colours than requested slots you get fewer
+swatches. Padding the result with near-duplicates would be a palette that lies
+about the image.
+
+### `provenance`
+
+Is there provenance on this file, and does it say the asset was AI-generated?
+
+```ts
+import { inspectProvenance } from '@prismposter/creator-tools/provenance';
+
+inspectProvenance(bytes);
+// { hasC2paManifest: true, hasIptcSourceType: true, hasProvenance: true,
+//   declaresAiGenerated: true, declaresCapture: false,
+//   digitalSourceTypes: ['.../digitalsourcetype/trainedAlgorithmicMedia'],
+//   assertionLabels: ['c2pa.actions.v2', 'c2pa.claim.v2'],
+//   manifestOffset: 41, signatureVerified: false }
+```
+
+Two markings are in circulation and they are constantly confused:
+
+1. A **C2PA manifest** -- a cryptographically signed Content Credential in a
+   JUMBF box.
+2. An **IPTC digital source type** -- a plain XMP/EXIF string with no signature
+   at all, which anyone can write with `exiftool`.
+
+A file can carry either, both, or neither. They are reported separately because
+they carry entirely different weight, and a great many "AI detector" write-ups
+treat the second as though it were the first.
+
+**It does not verify the signature.** `signatureVerified` is always `false`,
+deliberately. Proving a manifest is valid needs the full C2PA trust list and
+certificate-chain validation -- that is what
+[c2patool](https://github.com/contentauth/c2pa-rs) and `c2pa-node` are for, and
+you should use them when trust is the question. This answers the cheaper question
+those are overkill for, and which is often impossible in a serverless runtime that
+cannot ship a native binary: *is a credential present, and what does it claim?*
+That is the check you want when triaging an upload queue and routing only the
+interesting files on to a real verifier.
+
+**A present manifest is not a trusted manifest.** Anyone can sign anything with a
+self-signed certificate, including a lie.
+
+### `image-metadata`
+
+Read what a file says about itself -- and, more usefully, notice when it says
+nothing.
+
+```ts
+import { readImageMetadata, isStripped } from '@prismposter/creator-tools/image-metadata';
+
+const meta = readImageMetadata(bytes);
+meta.format;   // 'jpeg' | 'png' | 'webp' | 'gif' | ...
+meta.fields;   // parsed EXIF / XMP / text fields
+isStripped(meta);
+```
+
+Most platforms strip metadata on upload, so an image with none is the normal case
+rather than a suspicious one. `isStripped` exists so you can tell a user that
+instead of showing them an empty table.
+
+### `gif`
+
+An animated GIF encoder: global palette, LZW, sub-blocks, the lot.
+
+```ts
+import { encodeGif, buildGlobalPalette, indexFrame } from '@prismposter/creator-tools/gif';
+
+const palette = buildGlobalPalette(frames, 256);
+const bytes = encodeGif({ width, height, palette, frames });
+```
+
+GIF allows 256 colours and one global palette across every frame, so the
+quantiser matters more than the encoder does -- which is why it shares
+`palette`'s median cut rather than carrying its own.
+
 ## Design rules
 
 1. **Pure functions, no side effects, no I/O.** Everything is synchronous and
@@ -185,12 +282,15 @@ matching wall clock, which non-drop drifts from by ~3.6 s per hour.
 3. **Rounding happens once, at the boundary.** Sizes are whole pixels because
    that's what an encoder takes.
 4. **`null` means "no answer exists"**, and is always distinguishable from zero.
+5. **A wrong *type* still throws.** Rule 2 is about values a user could type. It
+   is not a licence to guess what a caller meant by handing a string to a
+   function that reads bytes.
 
 ## Development
 
 ```bash
 npm install
-npm test          # 98 tests
+npm test          # 167 tests
 npm run typecheck
 npm run build
 ```
@@ -199,16 +299,32 @@ Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). The bar for a 
 constant is a first-party source; the bar for a new function is a test that would
 fail without it.
 
-## Related
+## The same maths, as browser tools
 
-These utilities cover the same ground as the free browser tools at
-[PrismPoster](https://www.prismposter.com) — an
-[aspect ratio calculator](https://www.prismposter.com/tools/aspect-ratio-calculator),
-[BPM tapper](https://www.prismposter.com/tools/bpm-tapper),
-[subtitle converter](https://www.prismposter.com/tools/subtitle-converter),
-[social media size reference](https://www.prismposter.com/tools/social-media-sizes),
-and [video calculator](https://www.prismposter.com/tools/video-calculator),
-all free and browser-only.
+Every module here backs a free tool at
+**[prismposter.com/tools](https://www.prismposter.com/tools)** -- no account, no
+upload, no email. If you want the answer rather than the function, start there:
+
+| | | |
+| --- | --- | --- |
+| [Aspect ratio calculator](https://www.prismposter.com/tools/aspect-ratio-calculator) | [BPM tapper](https://www.prismposter.com/tools/bpm-tapper) | [Subtitle converter](https://www.prismposter.com/tools/subtitle-converter) |
+| [Social media sizes](https://www.prismposter.com/tools/social-media-sizes) | [Instagram post size](https://www.prismposter.com/tools/instagram-post-size) | [Video calculator](https://www.prismposter.com/tools/video-calculator) |
+| [Colour palette extractor](https://www.prismposter.com/tools/color-palette-extractor) | [Image metadata viewer](https://www.prismposter.com/tools/image-metadata-viewer) | [Video to GIF](https://www.prismposter.com/tools/video-to-gif) |
+| [Video frame extractor](https://www.prismposter.com/tools/video-frame-extractor) | [Crop image for video](https://www.prismposter.com/tools/crop-image-for-video) | [Vocal remover](https://www.prismposter.com/tools/vocal-remover) |
+| [Storyboard template](https://www.prismposter.com/tools/storyboard-template) | [Shot list template](https://www.prismposter.com/tools/shot-list-template) | [Lyric generator](https://www.prismposter.com/tools/lyric-generator) |
+
+## Who maintains this
+
+[PrismPoster](https://www.prismposter.com) is an AI content workspace -- image,
+video and music studios that share one project, one asset library, and one
+timeline you can actually finish in.
+
+This library is the boring half of that product: the arithmetic underneath the
+studios, extracted because it is genuinely reusable and because a subtitle parser
+is not a competitive advantage. `provenance` exists for the same reason in
+reverse -- building AI disclosure into a media product meant learning where the
+C2PA tooling is thin, and a dependency-free presence check was the piece that
+kept being missing.
 
 ## License
 
