@@ -1,6 +1,7 @@
 {
   "name": "@prismposter/creator-tools",
-  "version": "0.3.0",
+  "version": "0.3.1",
+  "mcpName": "com.prismposter/creator-tools",
   "description": "Zero-dependency TypeScript utilities and MCP server for video and social creators: aspect-ratio maths, tap tempo, subtitle conversion, platform frame sizes with sourced safe areas, encoding calculators, colour-palette extraction, GIF encoding, image metadata, and C2PA / AI-provenance detection.",
   "keywords": [
     "mcp",
@@ -40,7 +41,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "author": "PrismLabs O\u00dc",
+  "author": "PrismLabs OÜ",
   "homepage": "https://www.prismposter.com/tools",
   "repository": {
     "type": "git",
@@ -52,8 +53,8 @@
   "type": "module",
   "sideEffects": false,
   "bin": {
-    "prismposter-creator-tools": "./dist/mcp.js",
-    "prismposter-mcp": "./dist/mcp.js"
+    "prismposter-creator-tools": "dist/mcp.js",
+    "prismposter-mcp": "dist/mcp.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -110,7 +111,6 @@
     "README.md",
     "LICENSE",
     "glama.json",
-    "smithery.yaml",
     "server.json"
   ],
   "engines": {

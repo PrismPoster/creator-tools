@@ -1,21 +1,28 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
-  "name": "io.github.prismposter/creator-tools",
-  "description": "Zero-dependency MCP server for social media safe areas, aspect-ratio maths, bitrate & subtitle tools.",
-  "homepage": "https://www.prismposter.com/tools",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.prismposter/creator-tools",
+  "title": "PrismPoster Creator Tools",
+  "description": "Social media frame sizes with sourced safe areas, plus aspect-ratio, bitrate and subtitle tools.",
+  "websiteUrl": "https://www.prismposter.com/tools",
   "repository": {
     "url": "https://github.com/PrismPoster/creator-tools",
     "source": "github"
   },
-  "version": "0.3.0",
+  "version": "0.3.1",
   "packages": [
     {
-      "registry_type": "npm",
+      "registryType": "npm",
       "identifier": "@prismposter/creator-tools",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "transport": {
         "type": "stdio"
       }
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://www.prismposter.com/api/mcp"
     }
   ]
 }

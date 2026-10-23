@@ -58,7 +58,7 @@ export interface JsonRpcResponse {
 
 export const MCP_SERVER_INFO = {
   name: '@prismposter/creator-tools',
-  version: '0.3.0',
+  version: '0.3.1',
   homepage: 'https://www.prismposter.com/tools',
 } as const;
 
