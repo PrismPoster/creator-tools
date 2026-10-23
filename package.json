@@ -1,8 +1,11 @@
 {
   "name": "@prismposter/creator-tools",
-  "version": "0.2.0",
-  "description": "Zero-dependency TypeScript utilities for video and social creators: aspect-ratio maths, tap tempo, subtitle conversion, platform frame sizes with sourced safe areas, encoding calculators, colour-palette extraction, GIF encoding, image metadata, and C2PA / AI-provenance detection.",
+  "version": "0.3.0",
+  "description": "Zero-dependency TypeScript utilities and MCP server for video and social creators: aspect-ratio maths, tap tempo, subtitle conversion, platform frame sizes with sourced safe areas, encoding calculators, colour-palette extraction, GIF encoding, image metadata, and C2PA / AI-provenance detection.",
   "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
     "aspect-ratio",
     "safe-area",
     "subtitles",
@@ -17,6 +20,7 @@
     "video",
     "social-media",
     "instagram-reels",
+    "youtube-shorts",
     "tiktok",
     "creator-tools",
     "c2pa",
@@ -47,6 +51,10 @@
   },
   "type": "module",
   "sideEffects": false,
+  "bin": {
+    "prismposter-creator-tools": "./dist/mcp.js",
+    "prismposter-mcp": "./dist/mcp.js"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -90,13 +98,20 @@
     "./gif": {
       "types": "./dist/gif.d.ts",
       "import": "./dist/gif.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp.d.ts",
+      "import": "./dist/mcp.js"
     }
   },
   "files": [
     "dist",
     "src",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "glama.json",
+    "smithery.yaml",
+    "server.json"
   ],
   "engines": {
     "node": ">=18"

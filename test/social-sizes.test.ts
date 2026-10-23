@@ -71,13 +71,28 @@ describe('TikTok', () => {
   });
 });
 
+describe('YouTube Shorts safe area', () => {
+  it('is 15% top, 35% bottom, 4.4% left, 17.8% right (288/672/48/192px on 1080x1920)', () => {
+    const shorts = getPlacement('youtube-shorts')!;
+    expect(shorts.safeArea.kind).toBe('published');
+    expect(safeAreaPx(shorts)).toEqual({
+      top: 288,
+      bottom: 672,
+      left: 48,
+      right: 192,
+    });
+    expect(safeAreaBox(shorts)).toEqual({ width: 840, height: 960 });
+    expect(safeAreaSourceUrl(shorts)).toBe('https://support.google.com/google-ads/answer/9128498');
+  });
+});
+
 describe('region-published safe areas', () => {
   it('centres the YouTube banner safe region', () => {
     const banner = getPlacement('youtube-channel-banner')!;
     const inset = safeAreaPx(banner);
     expect(inset).not.toBeNull();
-    expect(inset!.left).toBe(inset!.right);
-    expect(safeAreaBox(banner)).toEqual({ width: 1546, height: 423 });
+    expect(Math.abs(inset!.left - inset!.right)).toBeLessThanOrEqual(1);
+    expect(safeAreaBox(banner)).toEqual({ width: 1235, height: 338 });
   });
 });
 

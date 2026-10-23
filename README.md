@@ -273,6 +273,34 @@ GIF allows 256 colours and one global palette across every frame, so the
 quantiser matters more than the encoder does -- which is why it shares
 `palette`'s median cut rather than carrying its own.
 
+### `mcp` (Model Context Protocol Server)
+
+`@prismposter/creator-tools` ships a zero-dependency MCP `stdio` server so AI
+assistants (Claude Desktop, Cursor, Windsurf, Cline) can query verified
+platform safe areas, aspect-ratio crops, bitrates, and subtitle conversions
+without hallucinating pixel dimensions.
+
+Add to `claude_desktop_config.json` or `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "prismposter-creator-tools": {
+      "command": "npx",
+      "args": ["-y", "@prismposter/creator-tools"]
+    }
+  }
+}
+```
+
+Exposed MCP tools:
+- `get_social_media_placement` — exact frame size, safe-area insets in pixels, usable box, and first-party documentation URL (`instagram-reels`, `youtube-shorts`, `tiktok-video`, etc.)
+- `list_social_media_placements` — list all placements (or filter by platform)
+- `calculate_aspect_ratio` — simplify ratios, align to codec macroblocks, and compute centre-crop / letterbox plans
+- `estimate_video_bitrate` — encoded file size (bytes, MiB, MB), target bitrate for a size cap, and bits-per-pixel density
+- `convert_subtitles` — parse and convert between SRT, WebVTT, and ASS/SSA with timing shift
+- `estimate_tempo` — median-window BPM estimation from tap timestamps and beat durations
+
 ## Design rules
 
 1. **Pure functions, no side effects, no I/O.** Everything is synchronous and
@@ -290,7 +318,7 @@ quantiser matters more than the encoder does -- which is why it shares
 
 ```bash
 npm install
-npm test          # 167 tests
+npm test          # 173 tests
 npm run typecheck
 npm run build
 ```
@@ -311,13 +339,14 @@ upload, no email. If you want the answer rather than the function, start there:
 | [Social media sizes](https://www.prismposter.com/tools/social-media-sizes) | [Instagram post size](https://www.prismposter.com/tools/instagram-post-size) | [Video calculator](https://www.prismposter.com/tools/video-calculator) |
 | [Colour palette extractor](https://www.prismposter.com/tools/color-palette-extractor) | [Image metadata viewer](https://www.prismposter.com/tools/image-metadata-viewer) | [Video to GIF](https://www.prismposter.com/tools/video-to-gif) |
 | [Video frame extractor](https://www.prismposter.com/tools/video-frame-extractor) | [Crop image for video](https://www.prismposter.com/tools/crop-image-for-video) | [Vocal remover](https://www.prismposter.com/tools/vocal-remover) |
-| [Storyboard template](https://www.prismposter.com/tools/storyboard-template) | [Shot list template](https://www.prismposter.com/tools/shot-list-template) | [Lyric generator](https://www.prismposter.com/tools/lyric-generator) |
+| [Viral video remake](https://www.prismposter.com/tools/viral-video-remake) | [Shot list template](https://www.prismposter.com/tools/shot-list-template) | [Lyric generator](https://www.prismposter.com/tools/lyric-generator) |
+| [Video bitrate calculator](https://www.prismposter.com/tools/video-bitrate-calculator) | [SRT caption cleaner](https://www.prismposter.com/tools/srt-caption-cleaner) | [YouTube thumbnail previewer](https://www.prismposter.com/tools/youtube-thumbnail-previewer) |
 
 ## Who maintains this
 
 [PrismPoster](https://www.prismposter.com) is an AI content workspace -- image,
-video and music studios that share one project, one asset library, and one
-timeline you can actually finish in.
+video, remake, character and music studios that share one project, one asset
+library, and one timeline you can actually finish in.
 
 This library is the boring half of that product: the arithmetic underneath the
 studios, extracted because it is genuinely reusable and because a subtitle parser

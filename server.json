@@ -1,0 +1,21 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.prismposter/creator-tools",
+  "description": "Zero-dependency MCP server for social media safe areas, aspect-ratio maths, bitrate & subtitle tools.",
+  "homepage": "https://www.prismposter.com/tools",
+  "repository": {
+    "url": "https://github.com/PrismPoster/creator-tools",
+    "source": "github"
+  },
+  "version": "0.3.0",
+  "packages": [
+    {
+      "registry_type": "npm",
+      "identifier": "@prismposter/creator-tools",
+      "version": "0.3.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

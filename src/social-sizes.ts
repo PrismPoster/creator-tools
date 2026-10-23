@@ -34,8 +34,10 @@ export const SAFE_AREA_SOURCES = {
     'https://www.facebook.com/business/ads-guide/update/video/instagram-reels',
   metaStory:
     'https://www.facebook.com/business/ads-guide/update/image/instagram-story',
-  tiktokInFeed: 'https://ads.tiktok.com/help/article/tiktok-auction-in-feed-ads',
-  youtubeBanner: 'https://support.google.com/youtube/answer/2972003',
+  tiktokInFeed:
+    'https://ads.tiktok.com/resources/help/article/tiktok-auction-in-feed-ads',
+  youtubeBanner: 'https://support.google.com/youtube/answer/10456525',
+  youtubeVerticalAds: 'https://support.google.com/google-ads/answer/9128498',
 } as const;
 
 export type SafeAreaSourceId = keyof typeof SAFE_AREA_SOURCES;
@@ -43,14 +45,17 @@ export type SafeAreaSourceId = keyof typeof SAFE_AREA_SOURCES;
 /**
  * A safe area expressed the way the platform publishes it.
  *
- * Meta publishes percentages, so percentages are what is stored. Converting to
- * pixels is `safeAreaPx`'s job, and depends on the frame it is asked about.
+ * Meta publishes symmetric side percentages (`sidePct`), while Google Ads
+ * publishes asymmetric left/right pixel insets on 1080x1920 (`leftPct` /
+ * `rightPct`). Converting to pixels is `safeAreaPx`'s job.
  */
 export interface PublishedSafeArea {
   readonly kind: 'published';
   readonly topPct: number;
   readonly bottomPct: number;
   readonly sidePct: number;
+  readonly leftPct?: number;
+  readonly rightPct?: number;
   readonly sourceId: SafeAreaSourceId;
 }
 
@@ -97,6 +102,21 @@ const META_VERTICAL: PublishedSafeArea = {
 };
 
 const META_STORY: PublishedSafeArea = { ...META_VERTICAL, sourceId: 'metaStory' };
+
+/**
+ * YouTube vertical video (Shorts, vertical in-stream and in-feed), as Google
+ * Ads publishes it on a 1080x1920 frame: 288 px top, 672 px bottom, 48 px left
+ * and 192 px right (usable 840x960).
+ */
+const YOUTUBE_VERTICAL: PublishedSafeArea = {
+  kind: 'published',
+  topPct: 288 / 1920,
+  bottomPct: 672 / 1920,
+  sidePct: 48 / 1080,
+  leftPct: 48 / 1080,
+  rightPct: 192 / 1080,
+  sourceId: 'youtubeVerticalAds',
+};
 
 const TIKTOK_VIDEO: UnpublishedSafeArea = {
   kind: 'unpublished',
@@ -186,7 +206,7 @@ export const PLACEMENTS: readonly Placement[] = [
     kind: 'video',
     ratio: V916,
     renderWidth: 1080,
-    safeArea: NO_OVERLAY,
+    safeArea: YOUTUBE_VERTICAL,
   },
   {
     id: 'youtube-video',
@@ -206,8 +226,8 @@ export const PLACEMENTS: readonly Placement[] = [
     renderWidth: 2560,
     safeArea: {
       kind: 'region',
-      // YouTube publishes the always-visible centre region explicitly.
-      region: { width: 1546, height: 423 },
+      // YouTube publishes the always-visible centre region explicitly (1235x338).
+      region: { width: 1235, height: 338 },
       sourceId: 'youtubeBanner',
     },
   },
@@ -299,8 +319,8 @@ export function safeAreaPx(placement: Placement): EdgeInset | null {
       return {
         top: Math.round(size.height * area.topPct),
         bottom: Math.round(size.height * area.bottomPct),
-        left: Math.round(size.width * area.sidePct),
-        right: Math.round(size.width * area.sidePct),
+        left: Math.round(size.width * (area.leftPct ?? area.sidePct)),
+        right: Math.round(size.width * (area.rightPct ?? area.sidePct)),
       };
     case 'region': {
       // Take the floor on one edge and the remainder on the other. Rounding
