@@ -1,6 +1,6 @@
 {
   "name": "@prismposter/creator-tools",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "mcpName": "com.prismposter/creator-tools",
   "description": "Zero-dependency TypeScript utilities and MCP server for video and social creators: aspect-ratio maths, tap tempo, subtitle conversion, platform frame sizes with sourced safe areas, encoding calculators, colour-palette extraction, GIF encoding, image metadata, and C2PA / AI-provenance detection.",
   "keywords": [
@@ -125,8 +125,9 @@
     "prepublishOnly": "npm run typecheck && npm test && npm run build"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
+    "ajv": "^8.20.0",
     "typescript": "^5.6.0",
-    "vitest": "^2.1.0",
-    "@types/node": "^22.0.0"
+    "vitest": "^2.1.0"
   }
 }

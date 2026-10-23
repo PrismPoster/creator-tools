@@ -293,13 +293,23 @@ Add to `claude_desktop_config.json` or `.cursor/mcp.json`:
 }
 ```
 
-Exposed MCP tools:
-- `get_social_media_placement` — exact frame size, safe-area insets in pixels, usable box, and first-party documentation URL (`instagram-reels`, `youtube-shorts`, `tiktok-video`, etc.)
-- `list_social_media_placements` — list all placements (or filter by platform)
-- `calculate_aspect_ratio` — simplify ratios, align to codec macroblocks, and compute centre-crop / letterbox plans
-- `estimate_video_bitrate` — encoded file size (bytes, MiB, MB), target bitrate for a size cap, and bits-per-pixel density
-- `convert_subtitles` — parse and convert between SRT, WebVTT, and ASS/SSA with timing shift
-- `estimate_tempo` — median-window BPM estimation from tap timestamps and beat durations
+Exposed MCP tools (all read-only, pure local calculations with an output schema):
+- `get_social_media_placement` — one placement's frame size, safe-area insets in pixels, usable box and first-party documentation URL (`instagram-reels`, `youtube-shorts`, `tiktok-video`, etc.), plus a crop / letterbox plan for your source size
+- `list_social_media_placements` — every placement, or one platform's, for browsing and comparison
+- `check_safe_area` — whether a caption, logo or button box stays inside a placement's safe area, and by how many pixels it intrudes past each edge; TikTok answers `unknown` with the reason
+- `calculate_aspect_ratio` — simplify any ratio, align to codec blocks, and compute centre-crop / letterbox plans for an arbitrary target ratio
+- `estimate_video_bitrate` — encoded file size (bytes, MiB, MB), the bitrate that fits a size cap, and bits-per-pixel density
+- `convert_subtitles` — convert between SRT, WebVTT and ASS/SSA with format detection and a timing shift
+- `estimate_tempo` — BPM from tap timestamps, or beat and bar lengths for a known BPM
+
+A bad call returns an MCP tool error (`isError: true`) whose message says how to fix it,
+for example the valid placement ids for an unknown one.
+
+A hosted version runs at `https://www.prismposter.com/api/mcp` (Streamable HTTP, no install).
+It answers from prismposter.com's larger placement dataset (which also accepts the camelCase ids
+used on the site), takes `videoKbps` and `targetCapMb` in its bitrate tool, converts SRT and
+WebVTT only, and adds a `get_prismposter_capabilities` tool.
+Both are listed in the official MCP Registry as `com.prismposter/creator-tools`.
 
 ## Design rules
 
