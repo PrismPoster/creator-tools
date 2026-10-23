@@ -3,6 +3,10 @@ name: Publish
 # Publishing by hand needs a 2FA code typed at the right moment, which is fine
 # once and tedious forever. This runs the same gates as prepublishOnly and then
 # publishes on a GitHub Release, so a release is `git tag` plus a click.
+#
+# Auth is npm trusted publishing (OIDC): npmjs.com trusts this repo + this
+# workflow file, so there is no NPM_TOKEN secret to leak or rotate. Renaming
+# this file breaks the trust until the npm package settings are updated.
 on:
   release:
     types: [published]
@@ -11,14 +15,13 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Existing tag to publish from (e.g. v0.2.0)'
+        description: 'Existing tag to publish from (e.g. v0.3.1)'
         required: true
 
 permissions:
   contents: read
-  # Required for npm provenance: npm mints a signed attestation binding the
-  # published tarball to this workflow run and this commit. Fitting for a
-  # package that ships a provenance module, and it costs nothing.
+  # Required for trusted publishing and provenance: the OIDC token both
+  # authenticates the publish and binds the tarball to this run and commit.
   id-token: write
 
 jobs:
@@ -31,7 +34,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          # Trusted publishing needs npm >= 11.5.1, which Node 24 bundles.
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
           cache: npm
 
@@ -56,5 +60,3 @@ jobs:
           echo "$TAG matches package.json."
 
       - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

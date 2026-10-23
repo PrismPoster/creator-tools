@@ -45,10 +45,10 @@
   "homepage": "https://www.prismposter.com/tools",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/prismposter/creator-tools.git"
+    "url": "git+https://github.com/PrismPoster/creator-tools.git"
   },
   "bugs": {
-    "url": "https://github.com/prismposter/creator-tools/issues"
+    "url": "https://github.com/PrismPoster/creator-tools/issues"
   },
   "type": "module",
   "sideEffects": false,
