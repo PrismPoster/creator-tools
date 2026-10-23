@@ -65,18 +65,33 @@ export interface JsonRpcResponse {
   readonly error?: {
     readonly code: number;
     readonly message: string;
+    readonly data?: unknown;
   };
 }
 
 export const MCP_SERVER_INFO = {
   name: '@prismposter/creator-tools',
   title: 'PrismPoster Creator Tools',
-  version: '0.4.0',
+  version: '0.5.0',
   homepage: 'https://www.prismposter.com/tools',
 } as const;
 
-/** Newest first; `initialize` answers with the client's version only if it is listed here. */
-export const SUPPORTED_PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'] as const;
+/**
+ * A 2026-07-28 request names its version in `_meta` and sends no
+ * `initialize`; older clients open with `initialize`. Over stdio there are no
+ * routing headers, so `_meta` alone decides the era.
+ */
+export const MODERN_PROTOCOL_VERSION = '2026-07-28';
+
+/** Versions answered through `initialize`, newest first. */
+export const LEGACY_PROTOCOL_VERSIONS = ['2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05'] as const;
+
+export const SUPPORTED_PROTOCOL_VERSIONS = [MODERN_PROTOCOL_VERSION, ...LEGACY_PROTOCOL_VERSIONS] as const;
+
+const UNSUPPORTED_PROTOCOL_VERSION = -32022;
+
+/** The tool list changes only with a release, so clients may cache it for an hour. */
+const LIST_TTL_MS = 3_600_000;
 
 export const MCP_INSTRUCTIONS =
   'Deterministic calculators for video and social creators. Every tool is a pure local computation: no network calls, no state, no side effects, and the same input always returns the same output. Platform figures come from first-party documentation and carry their source URL; where a platform publishes no fixed safe area (TikTok), tools say so instead of inventing one.';
@@ -824,12 +839,28 @@ export function handleMcpRequest(req: JsonRpcRequest): JsonRpcResponse | null {
     return null;
   }
 
+  const meta = req.params?._meta as Record<string, unknown> | undefined;
+  const modernVersion = meta?.['io.modelcontextprotocol/protocolVersion'];
+  const modern = typeof modernVersion === 'string';
+  if (modern && modernVersion !== MODERN_PROTOCOL_VERSION) {
+    return {
+      jsonrpc: '2.0',
+      id: req.id,
+      error: {
+        code: UNSUPPORTED_PROTOCOL_VERSION,
+        message: `Unsupported protocol version: ${modernVersion}`,
+        data: { supported: [MODERN_PROTOCOL_VERSION], requested: modernVersion },
+      },
+    };
+  }
+  const complete = <T extends object>(result: T) => (modern ? { ...result, resultType: 'complete' as const } : result);
+
   switch (req.method) {
     case 'initialize': {
       const requested = req.params?.protocolVersion;
-      const protocolVersion = (SUPPORTED_PROTOCOL_VERSIONS as readonly unknown[]).includes(requested)
+      const protocolVersion = (LEGACY_PROTOCOL_VERSIONS as readonly unknown[]).includes(requested)
         ? (requested as string)
-        : SUPPORTED_PROTOCOL_VERSIONS[0];
+        : LEGACY_PROTOCOL_VERSIONS[0];
       return {
         jsonrpc: '2.0',
         id: req.id,
@@ -844,20 +875,35 @@ export function handleMcpRequest(req: JsonRpcRequest): JsonRpcResponse | null {
       };
     }
 
+    case 'server/discover':
+      return {
+        jsonrpc: '2.0',
+        id: req.id,
+        result: {
+          resultType: 'complete',
+          supportedVersions: [MODERN_PROTOCOL_VERSION],
+          capabilities: { tools: {} },
+          instructions: MCP_INSTRUCTIONS,
+          ttlMs: LIST_TTL_MS,
+          cacheScope: 'public',
+          _meta: { 'io.modelcontextprotocol/serverInfo': MCP_SERVER_INFO },
+        },
+      };
+
     case 'ping':
       return {
         jsonrpc: '2.0',
         id: req.id,
-        result: {},
+        result: complete({}),
       };
 
     case 'tools/list':
       return {
         jsonrpc: '2.0',
         id: req.id,
-        result: {
-          tools: MCP_TOOLS,
-        },
+        result: modern
+          ? { tools: MCP_TOOLS, resultType: 'complete', ttlMs: LIST_TTL_MS, cacheScope: 'public' }
+          : { tools: MCP_TOOLS },
       };
 
     case 'tools/call': {
@@ -869,7 +915,7 @@ export function handleMcpRequest(req: JsonRpcRequest): JsonRpcResponse | null {
       return {
         jsonrpc: '2.0',
         id: req.id,
-        result: callTool(name, args),
+        result: complete(callTool(name, args)),
       };
     }
 

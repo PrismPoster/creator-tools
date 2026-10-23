@@ -5,7 +5,8 @@ import {
   MCP_INSTRUCTIONS,
   MCP_SERVER_INFO,
   MCP_TOOLS,
-  SUPPORTED_PROTOCOL_VERSIONS,
+  LEGACY_PROTOCOL_VERSIONS,
+  MODERN_PROTOCOL_VERSION,
 } from '../src/mcp.js';
 
 interface ToolResult {
@@ -64,7 +65,7 @@ describe('MCP JSON-RPC handler', () => {
     });
   });
 
-  it('answers an unsupported protocol version with the newest one it supports', () => {
+  it('answers an unsupported initialize version with the newest legacy one it supports', () => {
     const res = handleMcpRequest({
       jsonrpc: '2.0',
       id: 1,
@@ -72,7 +73,7 @@ describe('MCP JSON-RPC handler', () => {
       params: { protocolVersion: '1999-01-01' },
     });
     expect((res?.result as { protocolVersion: string }).protocolVersion).toBe(
-      SUPPORTED_PROTOCOL_VERSIONS[0],
+      LEGACY_PROTOCOL_VERSIONS[0],
     );
   });
 
@@ -83,6 +84,52 @@ describe('MCP JSON-RPC handler', () => {
   it('returns a JSON-RPC error for an unknown method', () => {
     const res = handleMcpRequest({ jsonrpc: '2.0', id: 9, method: 'resources/list' });
     expect(res?.error?.code).toBe(-32601);
+  });
+});
+
+describe('2026-07-28 requests (version in _meta, no initialize)', () => {
+  const meta = { 'io.modelcontextprotocol/protocolVersion': MODERN_PROTOCOL_VERSION };
+
+  it('answers server/discover with the modern version and cache hints', () => {
+    const res = handleMcpRequest({ jsonrpc: '2.0', id: 1, method: 'server/discover', params: { _meta: meta } });
+    expect(res?.result).toMatchObject({
+      resultType: 'complete',
+      supportedVersions: [MODERN_PROTOCOL_VERSION],
+      capabilities: { tools: {} },
+      instructions: MCP_INSTRUCTIONS,
+      cacheScope: 'public',
+    });
+  });
+
+  it('lists tools and calls one without a handshake, marking each result complete', () => {
+    const list = handleMcpRequest({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: { _meta: meta } });
+    expect(list?.result).toMatchObject({ resultType: 'complete', cacheScope: 'public' });
+    const call = handleMcpRequest({
+      jsonrpc: '2.0',
+      id: 3,
+      method: 'tools/call',
+      params: { name: 'estimate_tempo', arguments: { bpm: 120 }, _meta: meta },
+    });
+    expect((call?.result as { resultType: string }).resultType).toBe('complete');
+  });
+
+  it('refuses a modern version it does not speak and lists the one it does', () => {
+    const res = handleMcpRequest({
+      jsonrpc: '2.0',
+      id: 4,
+      method: 'tools/list',
+      params: { _meta: { 'io.modelcontextprotocol/protocolVersion': '2099-01-01' } },
+    });
+    expect(res?.error).toEqual({
+      code: -32022,
+      message: 'Unsupported protocol version: 2099-01-01',
+      data: { supported: [MODERN_PROTOCOL_VERSION], requested: '2099-01-01' },
+    });
+  });
+
+  it('leaves a legacy result without resultType', () => {
+    const res = handleMcpRequest({ jsonrpc: '2.0', id: 5, method: 'tools/list' });
+    expect(res?.result).toEqual({ tools: MCP_TOOLS });
   });
 });
 
