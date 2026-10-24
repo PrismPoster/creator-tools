@@ -1,0 +1,14 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.prismposter/studio",
+  "title": "PrismPoster Studio",
+  "description": "Make AI videos with sound, images, songs, characters and Remakes with your own PrismPoster account.",
+  "websiteUrl": "https://www.prismposter.com/mcp",
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://www.prismposter.com/api/mcp/studio"
+    }
+  ]
+}
